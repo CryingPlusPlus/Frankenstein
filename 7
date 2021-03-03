@@ -1,0 +1,59 @@
+#include <iostream>
+#include <memory>
+#include <algorithm>
+#include <array>
+
+template<size_t ROW, size_t COL>
+class Matrix
+{
+    private:
+        std::array<float, ROW * COL> container;
+
+    public:
+        Matrix(std::array<float, ROW * COL> init)
+        {
+            container = init;
+        }
+        Matrix()
+        {
+            std::transform(container.begin(), container.end(), container.begin(), [](float x){ return 0; });
+        }
+        ~Matrix(){}
+
+        auto operator () (int a, int b)
+        {
+            return container.begin() + a * ROW + b;
+        }
+        
+        template<size_t U>
+        auto operator * (Matrix<COL, U> rhs)
+        {
+            Matrix<ROW, U> end{};
+            for(size_t r = 0; r < ROW; ++r)
+            {
+                for(size_t u = 0; u < U; ++u)
+                {
+                    for(size_t c = 0; c < COL; ++c)
+                        *end(r, u) += container[r * ROW + c] * *rhs(c, u);
+                }
+            }
+            return end;
+        }
+};
+
+int main()
+{
+    Matrix<2, 3> a{{
+        1, 2, 3, 
+        4, 5, 6
+    }};
+    Matrix<3, 2> b{{
+        7, 8,
+        9, 10,
+        11, 12
+    }};
+    auto c = a * b;
+    std::cout << *c(0, 0) << " " << *c(0, 1) << std::endl;
+    std::cout << *c(1, 0) << " " << *c(1, 1) << std::endl;
+    return 0;
+}
